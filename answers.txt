@@ -1,0 +1,119 @@
+4 IP ADDRESS, ROUTING & WEBREQUESTS
+
+ Task 1: IP address information
+[With eduVPN ON]
+Public IP (curl ifconfig.me): 145.118.231.92
+Local WLAN IPv4 (ipconfig): 145.118.231.92
+Default gateway: 145.118.228.1
+
+[With eduVPN OFF, home Wi‑Fi]
+Public IP (curl ifconfig.me): 178.227.143.194
+Local WLAN IPv4 (ipconfig): 192.168.76.214
+Default gateway: 192.168.76.1
+
+ Task 2: Repeat with VPN turned on, compare results
+Observation & Explanation:
+Without VPN: My local Wi‑Fi adapter receives a private LAN IP assigned by my home OpenWrt router. The public IP comes from my home ISP. Local private IP and public IP are different addresses.
+
+When eduVPN is enabled: All network traffic is tunneled through Leiden University’s remote access server. My network interface obtains a public university‑owned IP address, so the local WLAN IPv4 is equal to the external public IP. The default gateway also changes to the university network gateway.
+
+Task3: Private or public IP
+Private IP ranges given in assignment:
+10.0.0.0‑10.255.255.255
+172.16.0.0‑172.31.255.255
+192.168.0.0‑192.168.255.255
+
+[With eduVPN ON]
+Local IPv4 145.118.231.92: Public IP (outside private ranges)
+Default gateway 145.118.228.1: Public IP (outside private ranges)
+
+[With eduVPN OFF]
+Local IPv4 192.168.76.214: Private IP (within 192.168.0.0‑192.168.255.255 range)
+Default gateway 192.168.76.1: Private IP (within 192.168.0.0‑192.168.255.255 range)
+
+ Task4: Geo‑location of IP (With eduVPN ON)
+IP: 145.118.231.92
+City: Leiden
+Region: South Holland
+Country: NL (Netherlands)
+Organisation: AS1103 SURF B.V.
+Timezone: Europe/Amsterdam
+
+ Task5: Trace the path using tracert -[With eduVPN ON]
+Destination: google.nl [142.251.209.227]
+Hop 1: Timeout
+Hop 2: 172.23.5.10
+Hop 3: Timeout
+Hop 4: e1‑1‑5‑0.ledn001a‑jnx‑01.surf.net [145.145.1.252]
+
+Observation (VPN ON):
+The first hop times out because the VPN gateway blocks ICMP traceroute packets. Hop 2 (172.23.5.10) is a private IP inside the university VPN network. Traffic travels through the SURF academic backbone network towards the Google target server.
+
+[With eduVPN OFF, tracert leidenuniv.nl]
+Destination: leidenuniv.nl [132.229.92.45]
+Hop 1: OpenWrt.lan [192.168.76.1]
+Hop 2: Timeout
+Hop 3: 10.121.134.241
+Hop 4: 10.226.4.135
+Hop 5: 84.241.243.22
+Hop 6: 84.241.243.23
+Hop 7: 84.241.243.20
+Hop 8: 37.143.86.214
+Hop 9: et‑6‑1‑0‑0.asd001b‑jnx‑01.surf.net [80.249.208.50]
+Hop10: ae47.asd002a‑jnx‑01.surf.net [145.145.181.205]
+Hop11: e1‑1‑5‑0.ledn001a‑jnx‑01.surf.net [145.145.1.252]
+Hops 12‑30: Timeout
+
+Observation (VPN OFF):
+The very first hop is my local home router. Traffic goes through my ISP network and crosses international links, then enters the Dutch SURFnet academic network. Later hops time‑out because Leiden University firewalls block incoming ICMP traceroute probes.
+
+Task6: Geo‑location of Google datacenter (With eduVPN ON)
+Target Google IP: 142.251.209.227
+Location: Amsterdam, Netherlands
+
+
+5.1 SSH KEY CONNECTION
+
+Command:
+ssh-keygen -t rsa -b 4096 -C "s5057299@vuw.leidenuniv.nl"
+ssh-keygen -l -f $env:USERPROFILE\.ssh\id_rsa.pub
+
+Output:
+Generating public/private rsa key pair.
+Enter file in which to save the key (C:\Users\chuan/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in C:\Users\chuan/.ssh/id_rsa
+Your public key has been saved in C:\Users\chuan/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:+KmwRvtsfSkyI7GwIIjbMZyf5nff1VAQwcuIyoSf8RU s5057299@vuw.leidenuniv.nl
+The key's randomart image is:
++---[RSA 4096]----+
+|          .+o    |
+|         E ..    |
+|       . . + ..  |
+|      ..o . o.   |
+| o. . . .+S= . . |
+| = * o .=. .   o |
+| .+ B.= .o .     |
+| . o O+*.+ o .   |
+|   +o=+= +.      |
++----[SHA256]-----+
+
+Observation:
+A valid 4096‑bit RSA SSH key pair has been created locally on Windows.
+- id_rsa: Private key, stored locally, must remain secret and never shared.
+- id_rsa.pub: Public key, intended to upload to LIACS GitLab for password‑less SSH authentication.
+
+Troubleshooting attempts for uploading public key to LIACS GitLab web form:
+1. Copy output from PowerShell using Get‑Content | clip
+2. Copy from Notepad (word‑wrap disabled)
+3. Copy from Git Bash(MINGW64) with cat ~/.ssh/id_rsa.pub | clip
+
+All attempts trigger GitLab web errors:
+"Key type is forbidden. Must be RSA, ECDSA, ED25519, ECDSA_SK, or ED25519_SK; Key is invalid; Fingerprint sha256 cannot be generated".
+
+The local public‑key file is verified intact by ssh‑keygen‑l command. This error originates from invisible Windows CRLF newline characters introduced during Windows copy‑paste, which breaks the single‑line OpenSSH format required by this self‑hosted GitLab instance.
+
+Theory of operation:
+Public key is stored on the remote Git server. Private key stays on local PC. When connecting, asymmetric cryptography verifies identity so git clone/pull/push can work without account password.
