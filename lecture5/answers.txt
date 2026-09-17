@@ -190,3 +190,19 @@ git add stages the modified file.
 git commit creates a new local commit containing the full answers.
 git push uploads this new commit to the remote GitHub repository over SSH.
 The GitHub repository now contains the complete assignment answers.
+
+6 LIACS SERVER
+Command: ssh s5057299@liacs.leidenuniv.nl
+Output:
+ssh: connect to host liacs.leidenuniv.nl port 22: Connection timed out
+
+Command: ssh -v s5057299@liacs.leidenuniv.nl
+Output:
+OpenSSH_for_Windows_9.5p2, LibreSSL 3.8.2
+debug1: Connecting to liacs.leidenuniv.nl [132.229.137.15] port 22.
+debug1: connect to address 132.229.137.15 port 22: Connection timed out
+ssh: connect to host liacs.leidenuniv.nl port 22: Connection timed out
+
+Observation:
+EduVPN was enabled before attempting the SSH connection. The DNS resolution succeeded and resolved liacs.leidenuniv.nl to IP 132.229.137.15. However, the TCP connection to port 22 timed out. This means DNS lookup works, but packets to SSH port 22 cannot reach the target server. The traffic may be blocked by firewall rules, either the home router firewall or access restrictions on Leiden University’s LIACS server side.
+
